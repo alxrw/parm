@@ -13,10 +13,11 @@ import (
 )
 
 type Info struct {
-	Owner       string
-	Repo        string
-	Version     string
-	LastUpdated string
+	Owner          string
+	Repo           string
+	Version        string
+	LastUpdated    string
+	ReleaseChannel string
 	*DownstreamInfo
 	*UpstreamInfo
 }
@@ -37,9 +38,11 @@ func (info *Info) String() string {
 	out = append(out, fmt.Sprintf("Repo: %s", info.Repo))
 	out = append(out, fmt.Sprintf("Version: %s", info.Version))
 	out = append(out, fmt.Sprintf("LastUpdated: %s", info.LastUpdated))
+	out = append(out, fmt.Sprintf("ReleaseChannel: %s", info.ReleaseChannel))
 	if info.DownstreamInfo != nil {
 		out = append(out, info.DownstreamInfo.string())
-	} else if info.UpstreamInfo != nil {
+	}
+	if info.UpstreamInfo != nil {
 		out = append(out, info.UpstreamInfo.string())
 	}
 	return strings.Join(out, "\n")
@@ -101,6 +104,7 @@ Try using the --get-upstream flag`, pkgPath, err, owner, repo)
 	}
 	info.Version = man.Version
 	info.LastUpdated = man.LastUpdated
+	info.ReleaseChannel = string(man.InstallType)
 
 	downInfo := DownstreamInfo{
 		InstallPath: pkgPath,

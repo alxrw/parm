@@ -6,8 +6,11 @@ package info
 import (
 	"fmt"
 	"parm/internal/cmdutil"
+	"parm/internal/config"
 	"parm/internal/core/catalog"
 	"parm/internal/gh"
+	"parm/internal/manifest"
+	"parm/parmver"
 	"parm/pkg/cmdparser"
 
 	"github.com/spf13/cobra"
@@ -17,15 +20,31 @@ import (
 // TODO: don't retrive package info from GitHub if it doesn't have any releases.
 // doing this would be very api-expensive though still.
 
-// TODO: don't error out if trying to retrieve package info locally if the package doesn't exist.
-
 func NewInfoCmd(f *cmdutil.Factory) *cobra.Command {
 	var getUpstream bool
 	var infoCmd = &cobra.Command{
 		Use:   "info <owner>/<repo>",
 		Short: "Prints out information about a package",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// return info about parm itself if no args provided
+			if len(args) == 0 {
+				di := catalog.DownstreamInfo{
+					InstallPath: fmt.Sprintf("%s/%s", config.Cfg.ParmBinPath, "parm"),
+				}
+				info := catalog.Info{
+					Owner:          "alxrw",
+					Repo:           "parm",
+					Version:        parmver.StringVersion,
+					LastUpdated:    "N/A", // TODO: find some way to update this
+					ReleaseChannel: string(manifest.Release),
+					DownstreamInfo: &di,
+				}
+				pr := info.String()
+				fmt.Println(pr)
+				return nil
+			}
+
 			ctx := cmd.Context()
 			pkg := args[0]
 			token, err := gh.GetStoredApiKey(viper.GetViper())
