@@ -129,7 +129,14 @@ mv -f "$src" "$bin_dir/parm"
 
 echo "Installed: $bin_dir/parm"
 
-# Pick a profile once (used for PATH and optional token persistence)
+# Resolve fish config path
+if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+  fish_config="${XDG_CONFIG_HOME%/}/fish/config.fish"
+else
+  fish_config="${HOME}/.config/fish/config.fish"
+fi
+
+# Pick a profile for bash/zsh (used for PATH and optional token persistence)
 if [ -z "${profile:-}" ]; then
   if [ -f "$HOME/.zshrc" ]; then
     profile="$HOME/.zshrc"
@@ -142,8 +149,15 @@ if [ -z "${profile:-}" ]; then
   fi
 fi
 
+# Detect whether the user has fish installed (config file exists or fish is on PATH)
+has_fish=0
+if [ -f "$fish_config" ] || command -v fish >/dev/null 2>&1; then
+  has_fish=1
+fi
+
 # Ensure <prefix>/bin is in PATH; avoid duplicates by checking env and profile content
 ensure_line='export PATH="'"$bin_dir"':$PATH"'
+fish_ensure_line='set -gx PATH "'"$bin_dir"'" $PATH'
 
 need_add_env=1
 case ":$PATH:" in
@@ -157,6 +171,14 @@ if [ -f "$profile" ]; then
   fi
 fi
 
+need_add_fish=1
+if [ "$has_fish" -eq 1 ] && [ -f "$fish_config" ]; then
+  if grep -qs "$bin_dir" "$fish_config"; then
+    need_add_fish=0
+  fi
+fi
+
+# Write to bash/zsh profile
 if [ "$need_add_env" -eq 1 ] || [ "$need_add_profile" -eq 1 ]; then
   if [ ! -f "$profile" ]; then
     printf "%s\n" "$ensure_line" > "$profile"
@@ -169,10 +191,27 @@ if [ "$need_add_env" -eq 1 ] || [ "$need_add_profile" -eq 1 ]; then
   fi
 fi
 
+# Write to fish config
+if [ "$has_fish" -eq 1 ] && [ "$need_add_fish" -eq 1 ]; then
+  mkdir -p "$(dirname "$fish_config")"
+  if [ ! -f "$fish_config" ]; then
+    printf "%s\n" "$fish_ensure_line" > "$fish_config"
+    echo "Created config.fish and added PATH. Open a new shell to use it."
+  else
+    printf "\n# Added by parm installer\n%s\n" "$fish_ensure_line" >> "$fish_config"
+    echo "Added $bin_dir to PATH in config.fish. Open a new shell to use it."
+  fi
+fi
+
 if [ -n "${GITHUB_TOKEN:-}" ]; then
   if [ "${WRITE_TOKEN:-}" = "1" ]; then
     echo "export GITHUB_TOKEN=$GITHUB_TOKEN" >> "$profile"
     echo "Wrote GITHUB_TOKEN to $(basename "$profile"). Open a new shell or run: . \"$profile\""
+    if [ "$has_fish" -eq 1 ]; then
+      mkdir -p "$(dirname "$fish_config")"
+      echo "set -gx GITHUB_TOKEN $GITHUB_TOKEN" >> "$fish_config"
+      echo "Wrote GITHUB_TOKEN to config.fish."
+    fi
   else
     echo "Add your GitHub API Key to your shell profile via the following:"
     echo "  echo 'export GITHUB_TOKEN=…' >> \"$profile\""
