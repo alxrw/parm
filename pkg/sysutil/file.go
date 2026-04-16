@@ -14,6 +14,11 @@ import (
 func SafeJoin(root, name string) (string, error) {
 	cleaned := filepath.Clean(name)
 	target := filepath.Join(root, cleaned)
+	root = filepath.Clean(root)
+
+	if target == root {
+		return target, nil
+	}
 
 	root = filepath.Clean(root) + string(os.PathSeparator)
 	if !strings.HasPrefix(target, root) {
@@ -25,7 +30,7 @@ func SafeJoin(root, name string) (string, error) {
 func GetParentDir(path string) (string, error) {
 	abs := filepath.IsAbs(path)
 	if !abs {
-		return "", fmt.Errorf("filepath must be absolute.")
+		return "", fmt.Errorf("filepath must be absolute")
 	}
 
 	return filepath.Dir(path), nil
@@ -105,7 +110,7 @@ func SymlinkBinToPath(binPath, destPath string) error {
 		return err
 	}
 	if !isBin {
-		return fmt.Errorf("error: provided dir is not a binary")
+		return fmt.Errorf("provided dir is not a binary")
 	}
 
 	if _, err := os.Lstat(destPath); err == nil {

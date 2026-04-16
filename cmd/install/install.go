@@ -71,15 +71,17 @@ func NewInstallCmd(f *cmdutil.Factory) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pkg := args[0]
+			var err error
 
 			ctx := cmd.Context()
+
+			// fine if no API key, we can just be unauthenticated
 			token, _ := gh.GetStoredApiKey(viper.GetViper())
 			client := f.Provider(ctx, token).Repos()
 
 			inst := installer.New(client)
 
 			var owner, repo string
-			var err error
 
 			owner, repo, err = cmdparser.ParseRepoRef(pkg)
 			if err != nil {
@@ -156,7 +158,11 @@ func NewInstallCmd(f *cmdutil.Factory) *cobra.Command {
 				}(),
 			}
 
-			fmt.Printf("installing %s/%s\n", owner, repo)
+			if opts.Version == nil {
+				fmt.Printf("Installing %s/%s::latest\n", owner, repo)
+			} else {
+				fmt.Printf("Installing %s/%s::%s\n", owner, repo, *opts.Version)
+			}
 
 			installPath := parmutil.GetInstallDir(owner, repo)
 			res, err := inst.Install(ctx, owner, repo, installPath, opts, hooks)
@@ -177,7 +183,7 @@ func NewInstallCmd(f *cmdutil.Factory) *cobra.Command {
 
 			man, err := manifest.New(owner, repo, res.Version, opts.Type, res.InstallPath)
 			if err != nil {
-				return fmt.Errorf("error: failed to create manifest: \n%w", err)
+				return fmt.Errorf("failed to create manifest: \n%w", err)
 			}
 			err = man.Write(res.InstallPath)
 			if err != nil {

@@ -24,17 +24,20 @@ func NewSetCmd(f *cmdutil.Factory) *cobra.Command {
 				if err != nil {
 					return err
 				}
+
+				old := viper.Get(k)
 				viper.Set(k, v)
-				fmt.Printf("Set %s = %s\n", k, v)
+
+				fmt.Printf("Set %s from %s to %s\n", k, old, v)
 			}
 
 			if err := viper.WriteConfig(); err != nil {
 				if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 					if err = viper.SafeWriteConfig(); err != nil {
-						return fmt.Errorf("error: failed to create config file: \n%w", err)
+						return fmt.Errorf("failed to create config file: \n%w", err)
 					}
 				} else {
-					return fmt.Errorf("error: failed to write config file: \n%w", err)
+					return fmt.Errorf("failed to write config file: \n%w", err)
 				}
 			}
 			return nil

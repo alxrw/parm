@@ -9,10 +9,13 @@ func TestParseRepoRef(t *testing.T) {
 	refs := map[string][]string{
 		"neovim/neovim":               {"neovim", "neovim", "false"},
 		"AvaloniaUI/Avalonia.Samples": {"AvaloniaUI", "Avalonia.Samples", "false"},
-		"":                            {"", "", "true"},
-		"/":                           {"", "", "true"},
-		"godotengine/":                {"", "", "true"},
-		";.;:-/godot":                 {"", "", "true"},
+		// Shorthand syntax tests
+		"neovim":       {"neovim", "neovim", "false"},
+		"rust-lang":    {"rust-lang", "rust-lang", "false"},
+		"":             {"", "", "true"},
+		"/":            {"", "", "true"},
+		"godotengine/": {"", "", "true"},
+		";.;:-/godot":  {"", "", "true"},
 	}
 	for ref, val := range refs {
 		own, rep, err := ParseRepoRef(ref)
@@ -29,10 +32,13 @@ func TestParseRepoReleaseRef(t *testing.T) {
 	refs := map[string][]string{
 		"neovim/neovim@v0.11.3":               {"neovim", "neovim", "v0.11.3", "false"},
 		"AvaloniaUI/Avalonia.Samples@samples": {"AvaloniaUI", "Avalonia.Samples", "samples", "false"},
-		"":                                    {"", "", "", "true"},
-		"/@j":                                 {"", "", "", "true"},
-		"godotengine/@4.4.1-stable":           {"", "", "", "true"},
-		";.;:-/godot@4.4.1-stable":            {"", "", "", "true"},
+		// Shorthand syntax with tag tests
+		"neovim@v0.11.3":            {"neovim", "neovim", "v0.11.3", "false"},
+		"rust-lang@1.75.0":          {"rust-lang", "rust-lang", "1.75.0", "false"},
+		"":                          {"", "", "", "true"},
+		"/@j":                       {"", "", "", "true"},
+		"godotengine/@4.4.1-stable": {"", "", "", "true"},
+		";.;:-/godot@4.4.1-stable":  {"", "", "", "true"},
 	}
 	for ref, val := range refs {
 		own, rep, tag, err := ParseRepoReleaseRef(ref)

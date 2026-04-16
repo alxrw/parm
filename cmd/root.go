@@ -9,6 +9,7 @@ import (
 	"parm/cmd/info"
 	"parm/cmd/install"
 	"parm/cmd/list"
+	"parm/cmd/pin"
 	"parm/cmd/remove"
 	"parm/cmd/sw"
 	"parm/cmd/update"
@@ -46,6 +47,8 @@ cross-platform on Windows, Linux, and MacOS.`,
 		list.NewListCmd(f),
 		info.NewInfoCmd(f),
 		sw.NewSwitchCmd(f),
+		pin.NewPinCmd(f),
+		pin.NewUnpinCmd(f),
 		// search.NewSearchCmd(f),
 	)
 
