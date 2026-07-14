@@ -113,7 +113,7 @@ To update parm, just run the install script again. I recommend not setting the `
     - You can use a fine-grained personal access token if you want, but this is not tested properly. Check out the guide for that [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token).
 2. Add the API key to your shell environment:
 ```sh
-echo 'export GH_TOKEN=<your_token_here> >> ~/.bashrc'
+echo 'export GH_TOKEN=<your_token_here>' >> ~/.bashrc
 ```
 
 - You can substitute `GH_TOKEN` with `GITHUB_TOKEN` or `PARM_GITHUB_TOKEN`
