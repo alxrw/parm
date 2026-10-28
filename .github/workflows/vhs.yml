@@ -2,6 +2,11 @@ name: "VHS Tape"
 
 on:
   workflow_call:
+    inputs:
+      commit:
+        description: Commit Image
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       commit:
@@ -28,19 +33,21 @@ jobs:
         uses: actions/checkout@v6
 
       - name: "Install Release"
-        if: ${{ github.event_name == 'workflow_call' }}
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: ${{ github.repository }}
+          tag: ${{ github.ref_name }}
+          cache: enable
 
       - name: "Setup Go"
-        if: ${{ github.event_name != 'workflow_call' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
       - name: "Go Build"
-        if: ${{ github.event_name != 'workflow_call' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Build and install to a reliable bin path."
           go build
@@ -62,7 +69,9 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: charmbracelet/vhs
+          tag: v0.10.0
           binaries-location: vhs_0.10.0_Linux_x86_64
+          cache: enable
 
       - name: "Install Dependencies"
         id: install
@@ -103,7 +112,7 @@ jobs:
           path: ${{ env.image }}
 
       - name: "Push Image"
-        if: ${{ github.event_name == 'workflow_call' || inputs.commit }}
+        if: ${{ inputs.commit }}
         run: |
           git lfs install
           git config user.name "github-actions[bot]"
@@ -124,7 +133,7 @@ jobs:
           git push -f origin "${{ env.branch }}"
 
       - name: "Set URL"
-        if: ${{ github.event_name == 'workflow_call' || inputs.commit }}
+        if: ${{ inputs.commit }}
         id: url
         run: |
           url="https://media.githubusercontent.com/media/${{ github.repository }}/refs/heads/${{ env.branch }}/${{ env.image }}"
@@ -132,7 +141,7 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: "Job Summary"
-        if: ${{ github.event_name == 'workflow_call' || inputs.commit }}
+        if: ${{ inputs.commit }}
         continue-on-error: true
         run: |
           md="## VHS 📼\n\n"

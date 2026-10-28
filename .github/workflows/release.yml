@@ -81,3 +81,9 @@ jobs:
             bin/parm-windows-amd64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  vhs:
+    needs: release
+    permissions:
+      contents: write
+    uses: ./.github/workflows/vhs.yml
