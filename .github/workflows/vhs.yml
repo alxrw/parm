@@ -17,7 +17,7 @@ on:
 env:
   tape: scripts/demo.tape
   image: assets/demo.gif
-  branch: assets
+  branch: static
 
 jobs:
   vhs:
